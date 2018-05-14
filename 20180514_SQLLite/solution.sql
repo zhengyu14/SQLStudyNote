@@ -34,3 +34,26 @@ FROM StaffAssignment AS S
 INNER JOIN
 (SELECT SUM(salary) AS TotalSalary FROM StaffAssignment) AS NS
 GROUP BY Type;
+
+-- solution for question 3
+.width 10, 70
+SELECT
+BBP.Grade,
+GROUP_CONCAT(BBP.bookTitle || '(' || STRFTIME('%Y',W.pubDate) || ')') AS Books
+FROM
+(SELECT DISTINCT
+  CASE
+    WHEN BP.price >= 150 AND BP.price <= 1999.99 THEN 'Very High'
+    WHEN BP.price >= 100 AND BP.price <= 149.99 THEN 'High'
+    WHEN BP.price >= 50 AND BP.price <= 99.99 THEN 'Medium'
+    WHEN BP.price >= 25 AND BP.price <= 49.99 THEN 'Low'
+    WHEN BP.price >= 0 AND BP.price <= 24.99 THEN 'Very Low'
+  END AS Grade,
+  BP.bookCode, B.bookTitle, BP.price
+FROM BookPrice AS BP
+INNER JOIN Book AS B
+ON BP.bookCode = B.bookCode
+ORDER BY BP.bookCode, BP.endDate DESC) as BBP
+INNER JOIN Writing AS W
+ON BBP.bookCode = W.bookCode
+GROUP BY BBP.Grade;
