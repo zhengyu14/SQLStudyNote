@@ -36,7 +36,7 @@ INNER JOIN
 GROUP BY Type;
 
 -- solution for question 3
-.width 10, 70
+.width 10, 50
 SELECT
 BBP.Grade,
 GROUP_CONCAT(BBP.bookTitle || '(' || STRFTIME('%Y',W.pubDate) || ')') AS Books
@@ -49,11 +49,11 @@ FROM
     WHEN BP.price >= 25 AND BP.price <= 49.99 THEN 'Low'
     WHEN BP.price >= 0 AND BP.price <= 24.99 THEN 'Very Low'
   END AS Grade,
-  BP.bookCode, B.bookTitle, BP.price
+  BP.bookCode, B.bookTitle, MAX(BP.endDate)
 FROM BookPrice AS BP
 INNER JOIN Book AS B
 ON BP.bookCode = B.bookCode
-ORDER BY BP.bookCode, BP.endDate DESC) as BBP
+GROUP BY BP.bookCode) as BBP
 INNER JOIN Writing AS W
 ON BBP.bookCode = W.bookCode
 GROUP BY BBP.Grade;
