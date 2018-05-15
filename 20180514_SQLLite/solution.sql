@@ -89,3 +89,28 @@ FROM Staff AS S
 LEFT JOIN StaffAssignment AS SA
 ON S.staffCode = SA.staffCode) AS SSA
 ORDER BY SSA.Status ASC, SSA.Years DESC, SSA.Months DESC;
+
+-- solution for question 5
+--  1.1 trigger UndeleteStaff
+CREATE TRIGGER UndeleteStaff AFTER DELETE
+ON Staff
+BEGIN
+  UPDATE StaffAssignment SET endDate = DATE('NOW') WHERE StaffAssignment.staffCode = old.staffCode;
+END;
+--  1.2 test trigger UndeleteStaff
+SELECT * FROM Staff WHERE staffCode = 1; -- row existed
+SELECT endDate FROM StaffAssignment WHERE staffCode = 1; -- null
+DELETE FROM Staff WHERE staffCode = 1;
+SELECT * FROM Staff WHERE staffCode = 1; -- row deleted
+SELECT endDate FROM StaffAssignment WHERE staffCode = 1; -- deletion date
+--  2.1 trigger AssignStaff
+CREATE TRIGGER AssignStaff AFTER INSERT
+ON Staff
+BEGIN
+  INSERT INTO StaffAssignment (staffCode, startDate) VALUES (new.staffCode, DATE('NOW'));
+END;
+--  2.2 test trigger AssignStaff
+SELECT * FROM Staff; -- check existed staff
+INSERT INTO Staff (staffFirstName, staffLastName, staffStreet, staffSuburb, staffCity) VALUES ('test_first_name', 'test_last_name','test_street', 'test_suburb', 'test_city'); -- insert a new staff
+SELECT * FROM Staff WHERE staffCode = 13; -- check new insertion
+SELECT startDate FROM StaffAssignment WHERE staffCode = 13; -- insertion date
