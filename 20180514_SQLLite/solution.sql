@@ -57,3 +57,35 @@ GROUP BY BP.bookCode) as BBP
 INNER JOIN Writing AS W
 ON BBP.bookCode = W.bookCode
 GROUP BY BBP.Grade;
+
+-- solution for question 4
+.width 10, 10, 30
+CREATE VIEW StaffStatus AS
+SELECT SSA.staffFirstName AS Staff, SSA.Status, SSA.Years || ' Year(s) ' || SSA.Months || ' Month(s)' AS Duration
+FROM
+(SELECT S.staffFirstName,
+  CASE
+    WHEN SA.endDate >= DATE('NOW') AND SA.startDate <= DATE('NOW')
+      THEN 'Active'
+    WHEN SA.endDate IS NULL AND SA.startDate <= DATE('NOW')
+      THEN 'Active'
+    ELSE 'Inactive'
+  END AS Status,
+  CASE
+    WHEN SA.endDate >= DATE('NOW') AND SA.startDate <= DATE('NOW')
+      THEN CAST(((JULIANDAY(DATE('NOW')) - JULIANDAY(SA.startDate)) / 365.25) AS INTEGER)
+    WHEN SA.endDate IS NULL AND SA.startDate <= DATE('NOW')
+      THEN CAST(((JULIANDAY(DATE('NOW')) - JULIANDAY(SA.startDate)) / 365.25) AS INTEGER)
+    ELSE CAST(((JULIANDAY(SA.endDate) - JULIANDAY(SA.startDate)) / 365.25) AS INTEGER)
+  END AS Years,
+  CASE
+    WHEN SA.endDate >= DATE('NOW') AND SA.startDate <= DATE('NOW')
+      THEN CAST(((JULIANDAY(DATE('NOW')) - JULIANDAY(SA.startDate)) % 365.25 / 30.44) AS INTEGER)
+    WHEN SA.endDate IS NULL AND SA.startDate <= DATE('NOW')
+      THEN CAST(((JULIANDAY(DATE('NOW')) - JULIANDAY(SA.startDate)) % 365.25 / 30.44) AS INTEGER)
+    ELSE CAST(((JULIANDAY(SA.endDate) - JULIANDAY(SA.startDate)) % 365.25 / 30.44) AS INTEGER)
+  END AS Months
+FROM Staff AS S
+LEFT JOIN StaffAssignment AS SA
+ON S.staffCode = SA.staffCode) AS SSA
+ORDER BY SSA.Status ASC, SSA.Years DESC, SSA.Months DESC;
